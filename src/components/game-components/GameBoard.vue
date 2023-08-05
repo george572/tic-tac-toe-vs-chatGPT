@@ -1,11 +1,73 @@
 <script lang="ts" setup>
-import { CellsGrid } from "@/shared/CellsGrid";
-import { ref } from "vue";
+import { ref, reactive, watch, onMounted } from "vue";
+import { CellsGrid } from "@/constants/CellsGrid";
+import { winCombinations } from "@/constants/WinCombinations";
 import GameBoardCell from './GameBoardCell.vue';
+import { useGameStateStore } from "@/stores/gameState";
 
+const store = useGameStateStore();
 const playerScore = ref<number>(0);
 const chatGptScore = ref<number>(0);
 const turn = ref<number | null >(null);
+const cellsGrid = reactive<Cell[]>(CellsGrid);
+const countDownText = ref<number | null | string>(null);
+const currentPlayer = ref<string | undefined>(undefined);
+
+const checkWinCondition = (player: string, pickedCells: string[]) => {
+  if (winCombinations.some(item => JSON.stringify(item) === JSON.stringify(pickedCells))) {
+    if ( player === 'user') {
+      console.log('user wins');
+    } else {
+      console.log('gpt wins');
+    }
+  } else {
+    console.log('game continues');
+  }
+};
+
+onMounted(() => {
+  determineWhoStarts();
+});
+
+const determineWhoStarts = () => {
+  const players = ['user', 'gpt'];
+  let  startingPlayer = null;
+  let countDown = 4;
+
+  const intervalId = setInterval(() => {
+    countDown--;
+    countDownText.value = countDown;
+    if (countDown === 0) {
+      startingPlayer = players[Math.floor(Math.random()*players.length)];
+      countDownText.value = startingPlayer + ' starts';
+      turn.value = players.indexOf(startingPlayer);
+      currentPlayer.value = startingPlayer;
+      setTimeout(() => {
+        countDownText.value = null;
+      }, 1000);
+      clearInterval(intervalId);
+    }
+  }, 600);
+};
+
+const handleCellPickEvent = (cell: Cell) => {
+  cell.occupied = true;
+  changeTurn();
+};
+
+const changeTurn = () => {
+  if ( turn.value === 1) {
+    turn.value = 0;
+    currentPlayer.value = 'gpt';
+  } else {
+    turn.value = 1;
+    currentPlayer.value = 'user';
+  }
+};
+
+watch(store, () => {
+  checkWinCondition('gpt', store.gptPickedCells);
+});
 </script>
 
 <template>
@@ -19,15 +81,24 @@ const turn = ref<number | null >(null);
       :class="{'gpt-turn' : turn === 1, 'player-turn' : turn === 0}"
     >
       <GameBoardCell
-        v-for="cell in CellsGrid"
+        v-for="cell in cellsGrid"
         :key="cell.id"
+        :occupied="cell.occupied"
+        :player="currentPlayer"
+        :cell-id="cell.id"
+        @cell-picked="handleCellPickEvent(cell)"
       />
     </div>
     <div class="player-info">
       <h2>GPT</h2>
       <span>Score : {{ chatGptScore }}</span>
     </div>
-    <button @click="() => turn === 1 ? turn = 0 : turn = 1 " />
+  </div>
+  <div
+    v-if="countDownText"
+    class="countdown"
+  >
+    {{ countDownText }}
   </div>
 </template>
 
@@ -80,6 +151,19 @@ const turn = ref<number | null >(null);
               -100px 0 100px rgba(212, 212, 212, 0.5),
               -160px 0 160px rgba(212, 212, 212, 0.5);
   color: white;
+}
+
+.countdown {
+  position: absolute;
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+  display: block;
+  width: 100%;
+  height: 30px;
+  font-size: 70px;
+  top: 50px;
+  text-align: center;
 }
 
 

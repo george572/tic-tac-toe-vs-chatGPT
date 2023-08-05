@@ -2,7 +2,7 @@
 import GameBoard from '@/components/game-components/GameBoard.vue';
 import { ref } from 'vue';
 
-const startGame = ref(false);
+const startGame = ref(true);
 
 const handleStopGameEvent = () => (startGame.value = false);
 </script>
@@ -12,5 +12,4 @@ const handleStopGameEvent = () => (startGame.value = false);
     v-if="startGame"
     @stop-game="handleStopGameEvent"
   />
-  aee
 </template>

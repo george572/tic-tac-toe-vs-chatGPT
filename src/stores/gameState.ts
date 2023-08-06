@@ -9,8 +9,9 @@ export const useGameStateStore = defineStore('playerInfo', () => {
   const updateGameState = (player: string, cellId: string) => {
     if (player === 'gpt') {
       gptPickedCells.value.push(cellId);
+    } else {
+      userPickedCells.value.push(cellId);
     }
-    userPickedCells.value.push(cellId);
   };
 
   const resetGameState = () => {

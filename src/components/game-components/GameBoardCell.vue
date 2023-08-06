@@ -15,14 +15,13 @@ const emit = defineEmits(['cell-picked']);
 
 const pickCell = () => {
   if (!props.occupied) {
-    emitPickCellEvent();
     store.updateGameState(props.player, props.cellId);
+    emitPickCellEvent();
   }
 
 };
 
 const emitPickCellEvent = () => {
-  console.log(props.player)
   emit('cell-picked');
   if ( props.player === 'user') {
     activateUserSymbol.value = true;

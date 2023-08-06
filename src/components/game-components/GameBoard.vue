@@ -13,16 +13,16 @@ const cellsGrid = reactive<Cell[]>(CellsGrid);
 const countDownText = ref<number | null | string>(null);
 const currentPlayer = ref<string | undefined>(undefined);
 
-const checkWinCondition = (player: string, pickedCells: string[]) => {
+const checkWinCondition = (player: string | undefined, pickedCells: string[]) => {
+  if (player) {
   if (winCombinations.some(item => JSON.stringify(item) === JSON.stringify(pickedCells))) {
     if ( player === 'user') {
-      console.log('user wins');
+      return console.log('user wins');
     } else {
-      console.log('gpt wins');
+      return console.log('gpt wins');
     }
-  } else {
-    console.log('game continues');
   }
+  } 
 };
 
 onMounted(() => {
@@ -32,7 +32,7 @@ onMounted(() => {
 const determineWhoStarts = () => {
   const players = ['user', 'gpt'];
   let  startingPlayer = null;
-  let countDown = 4;
+  let countDown = 1;
 
   const intervalId = setInterval(() => {
     countDown--;
@@ -52,6 +52,8 @@ const determineWhoStarts = () => {
 
 const handleCellPickEvent = (cell: Cell) => {
   cell.occupied = true;
+  const pickedCells = turn.value === 1 ? store.gptPickedCells : store.userPickedCells;
+  checkWinCondition(currentPlayer.value, pickedCells);
   changeTurn();
 };
 
@@ -65,9 +67,8 @@ const changeTurn = () => {
   }
 };
 
-watch(store, () => {
-  checkWinCondition('gpt', store.gptPickedCells);
-});
+// watch(store, () => {
+// });
 </script>
 
 <template>

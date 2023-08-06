@@ -58,10 +58,10 @@ const handleCellPickEvent = (cell: Cell) => {
 const changeTurn = () => {
   if ( turn.value === 1) {
     turn.value = 0;
-    currentPlayer.value = 'gpt';
+    currentPlayer.value = 'user';
   } else {
     turn.value = 1;
-    currentPlayer.value = 'user';
+    currentPlayer.value = 'gpt';
   }
 };
 

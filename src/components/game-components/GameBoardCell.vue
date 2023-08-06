@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { ref } from 'vue';
+import { ref, toRef } from 'vue';
 import { useGameStateStore } from '@/stores/gameState';
 
 const store = useGameStateStore();
@@ -22,11 +22,14 @@ const pickCell = () => {
 };
 
 const emitPickCellEvent = () => {
+  console.log(props.player)
   emit('cell-picked');
   if ( props.player === 'user') {
     activateUserSymbol.value = true;
+    activateGptSymbol.value = false;
   } else {
     activateGptSymbol.value = true;
+    activateUserSymbol.value = false;
   }
 };
 

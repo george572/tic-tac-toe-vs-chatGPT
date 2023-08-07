@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { ref, toRef } from 'vue';
+import { ref } from 'vue';
 import { useGameStateStore } from '@/stores/gameState';
 
 const store = useGameStateStore();
@@ -14,7 +14,7 @@ const props = defineProps({
 const emit = defineEmits(['cell-picked']);
 
 const pickCell = () => {
-  if (!props.occupied) {
+  if (!props.occupied && props.player !== "") {
     store.updateGameState(props.player, props.cellId);
     emitPickCellEvent();
   }

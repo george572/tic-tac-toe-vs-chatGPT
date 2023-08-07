@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { ref, reactive, watch, onMounted } from "vue";
+import { ref, reactive, onMounted } from "vue";
 import { CellsGrid } from "@/constants/CellsGrid";
 import { winCombinations } from "@/constants/WinCombinations";
 import GameBoardCell from './GameBoardCell.vue';
@@ -34,7 +34,7 @@ const determineWhoStarts = () => {
   let  startingPlayer = null;
   let countDown = 1;
 
-  const intervalId = setInterval(() => {
+  const intervalCountdown = setInterval(() => {
     countDown--;
     countDownText.value = countDown;
     if (countDown === 0) {
@@ -45,7 +45,7 @@ const determineWhoStarts = () => {
       setTimeout(() => {
         countDownText.value = null;
       }, 1000);
-      clearInterval(intervalId);
+      clearInterval(intervalCountdown);
     }
   }, 600);
 };
@@ -66,9 +66,6 @@ const changeTurn = () => {
     currentPlayer.value = 'gpt';
   }
 };
-
-// watch(store, () => {
-// });
 </script>
 
 <template>

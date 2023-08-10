@@ -12,6 +12,7 @@ const turn = ref<number | null >(null);
 const cellsGrid = reactive<Cell[]>(CellsGrid);
 const countDownText = ref<number | null | string>(null);
 const currentPlayer = ref<string | undefined>(undefined);
+const startGame = ref<boolean>(false);
 
 const checkWinCondition = (player: string | undefined, pickedCells: string[]) => {
   if (player) {
@@ -25,14 +26,15 @@ const checkWinCondition = (player: string | undefined, pickedCells: string[]) =>
   } 
 };
 
-onMounted(() => {
+const handleStartBtnClick = () => {
+  startGame.value = true;
   determineWhoStarts();
-});
+};
 
 const determineWhoStarts = () => {
   const players = ['user', 'gpt'];
   let  startingPlayer = null;
-  let countDown = 1;
+  let countDown = 4;
 
   const intervalCountdown = setInterval(() => {
     countDown--;
@@ -75,6 +77,15 @@ const changeTurn = () => {
       <span>Score : {{ playerScore }}</span>
     </div>
     <div
+      v-if="!startGame"
+      class="start-game-div"
+    >
+      <button @click="handleStartBtnClick">
+        START
+      </button>
+    </div>
+    <div
+      v-else
       class="game-board-grid"
       :class="{'gpt-turn' : turn === 1, 'player-turn' : turn === 0}"
     >
@@ -164,5 +175,30 @@ const changeTurn = () => {
   text-align: center;
 }
 
+.start-game-div {
+  min-width:486px;
+  height:486px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  button {
+    font-size: 62px;
+    padding: 10px 15px;
+    background-color: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    outline: none;
+    color: white;
+    border-radius: 10px;
+    transition: all 200ms;
+    cursor: pointer;
+    &:hover {
+      background-color: white;
+      color: #293341;
+      transform: scale(1.06);
+    }
+  }
+}
 
 </style>

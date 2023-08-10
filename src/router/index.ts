@@ -5,11 +5,6 @@ const router = createRouter({
   routes: [
     {
       path: '/',
-      name: 'Base View',
-      component: () => import('../views/BaseView.vue')
-    },
-    {
-      path: '/play',
       name: 'Game View',
       component: () => import('../views/GameView.vue')
     }

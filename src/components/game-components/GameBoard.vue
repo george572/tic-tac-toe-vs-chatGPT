@@ -1,34 +1,54 @@
 <script lang="ts" setup>
-import { ref, reactive } from "vue";
+import { ref } from "vue";
 import { CellsGrid } from "@/constants/CellsGrid";
-import GameBoardCell from './GameBoardCell.vue';
 import { useGameStateStore } from "@/stores/gameState";
 import { UseRoundResult } from "@/composables/UseRoundResult";
 import { UseWhoStarts } from "@/composables/UseWhoStarts";
+import GameBoardCell from './GameBoardCell.vue';
 
-const { currentActivePlayer, currentTurn } = UseWhoStarts();
 const store = useGameStateStore();
+const { determineWhoStarts } = UseWhoStarts();
+
+const roundResultText = ref<string>("");
+const gameStartText = ref<string>("");
 const playerScore = ref<number>(0);
 const chatGptScore = ref<number>(0);
 const turn = ref<number | null >(null);
-const cellsGrid = reactive<Cell[]>(CellsGrid);
+const cellsGridClone = ref<Cell[]>(JSON.parse(JSON.stringify(CellsGrid)));
 const currentPlayer = ref<string | undefined>(undefined);
 const startGame = ref<boolean>(false);
+const roundFinished = ref<boolean>(false);
 
 
-
-const handleStartBtnClick = () => {
+const handleStartGame = () => {
+  const r = determineWhoStarts();
   startGame.value = true;
-  turn.value = currentTurn;
-  currentPlayer.value = currentActivePlayer;
+  turn.value = r.currentTurn;
+  currentPlayer.value = r.currentActivePlayer;
+  gameStartText.value = currentPlayer.value.toUpperCase() + ' starts'; 
+  roundFinished.value = false;
+  roundResultText.value = "";
 };
 
 const handleCellPickEvent = (cell: Cell) => {
+  gameStartText.value = "";
   cell.occupied = true;
   const pickedCells = turn.value === 1 ? store.gptPickedCells : store.userPickedCells;
   const { roundResult } = UseRoundResult(currentPlayer.value, pickedCells);
-  console.log(roundResult);
+  if (roundResult) {
+    roundResultText.value = roundResult;
+    store.resetGameState();
+    roundFinished.value = true;
+  }
   changeTurn();
+};
+
+const restartGame = () => {
+  cellsGridClone.value = [];
+  setTimeout(() => {
+    cellsGridClone.value = JSON.parse(JSON.stringify(CellsGrid));
+  }, 0.1);
+  handleStartGame();
 };
 
 const changeTurn = () => {
@@ -52,7 +72,10 @@ const changeTurn = () => {
       v-if="!startGame"
       class="start-game-div"
     >
-      <button @click="handleStartBtnClick">
+      <button
+        v-if="!roundFinished"
+        @click="handleStartGame"
+      >
         START
       </button>
     </div>
@@ -62,17 +85,33 @@ const changeTurn = () => {
       :class="{'gpt-turn' : turn === 1, 'player-turn' : turn === 0}"
     >
       <GameBoardCell
-        v-for="cell in cellsGrid"
+        v-for="cell in cellsGridClone"
         :key="cell.id"
         :occupied="cell.occupied"
         :player="currentPlayer"
         :cell-id="cell.id"
+        :allow-cell-pick="!roundFinished"
         @cell-picked="handleCellPickEvent(cell)"
       />
+      <button
+        v-if="roundFinished"
+        class="restart-btn"
+        @click="restartGame"
+      >
+        RESTART
+      </button>
     </div>
     <div class="player-info">
       <h2>GPT</h2>
       <span>Score : {{ chatGptScore }}</span>
+    </div>
+    <div class="game-text">
+      <div v-if="roundFinished">
+        {{ roundResultText }}
+      </div>
+      <div v-if="startGame">
+        {{ gameStartText }}
+      </div>
     </div>
   </div>
 </template>
@@ -101,6 +140,9 @@ const changeTurn = () => {
 }
 
 .game-board-grid {
+  min-width:486px;
+  min-height:486px;
+  position: relative;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   grid-gap: 1px;
@@ -128,7 +170,7 @@ const changeTurn = () => {
   color: white;
 }
 
-.countdown {
+.game-text {
   position: absolute;
   left: 0;
   right: 0;
@@ -136,14 +178,14 @@ const changeTurn = () => {
   display: block;
   width: 100%;
   height: 30px;
-  font-size: 70px;
-  top: 50px;
+  font-size: 30px;
+  top: 80px;
   text-align: center;
 }
 
 .start-game-div {
   min-width:486px;
-  height:486px;
+  min-height:486px;
   border: 1px solid rgba(255, 255, 255, 0.3);
   display: flex;
   align-items: center;
@@ -164,6 +206,26 @@ const changeTurn = () => {
       color: #293341;
       transform: scale(1.06);
     }
+  }
+}
+
+.restart-btn {
+  position: absolute;
+  bottom: -80px;
+  right: 0;
+  font-size: 30px;
+  padding: 10px 15px;
+  background-color: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  outline: none;
+  color: white;
+  border-radius: 10px;
+  transition: all 200ms;
+  cursor: pointer;
+  &:hover {
+    background-color: white;
+    color: #293341;
+    transform: scale(1.06);
   }
 }
 

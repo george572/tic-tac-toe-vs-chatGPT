@@ -7,7 +7,8 @@ const props = defineProps({
   occupied : { type: Boolean, required: true },
   player: { type: String, required: false, default: '' },
   cellId: { type: String, required: true },
-  allowCellPick: { type: Boolean, required: true }
+  allowCellPick: { type: Boolean, required: true },
+  winningCells: { type : Array as () => string[] | null, required: false, default: null }
 });
 
 const emit = defineEmits(['cell-picked']);
@@ -39,7 +40,7 @@ const emitPickCellEvent = () => {
 <template>
   <div
     class="cell inactive"
-    :class="{'active' : occupied}"
+    :class="{'active' : occupied, 'winning-cell': winningCells && winningCells.includes(cellId)}"
     @click="pickCell()"
   >
     <img
@@ -94,6 +95,13 @@ const emitPickCellEvent = () => {
   &:hover {
     background-color: rgba(0, 0, 0, 0.5);
     cursor: default;
+  }
+}
+
+.winning-cell {
+  background-color: rgba(255, 255, 255, 0.3);
+  &:hover {
+    background-color: rgba(255, 255, 255, 0.3);
   }
 }
 </style>

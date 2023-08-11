@@ -34,7 +34,7 @@ const handleCellPickEvent = (cell: Cell) => {
   gameStartText.value = "";
   cell.occupied = true;
   const pickedCells = turn.value === 1 ? store.gptPickedCells : store.userPickedCells;
-  const { roundResult } = UseRoundResult(currentPlayer.value, pickedCells);
+  const { roundResult } = UseRoundResult(currentPlayer.value, pickedCells, cellsGridClone.value);
   if (roundResult) {
     roundResultText.value = roundResult;
     store.resetGameState();

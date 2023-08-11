@@ -4,7 +4,7 @@ import { winCombinations } from "@/constants/WinCombinations";
   export const UseRoundResult = (player: string | undefined, pickedCells: string[]) => {
     let roundResult: string | null = null;
     if (player && pickedCells) {
-    if (winCombinations.some(item => JSON.stringify(item) === JSON.stringify(pickedCells))) {
+    if (winCombinations.some(item => JSON.stringify(item) === JSON.stringify(pickedCells) || item.every(value => pickedCells.includes(value)))) {
       if ( player === 'user') {
         roundResult = 'User Wins';
       } else {

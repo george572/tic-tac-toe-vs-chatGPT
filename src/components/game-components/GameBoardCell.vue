@@ -2,23 +2,25 @@
 import { ref } from 'vue';
 import { useGameStateStore } from '@/stores/gameState';
 
-const store = useGameStateStore();
-const activateUserSymbol = ref<boolean>(false);
-const activateGptSymbol = ref<boolean>(false);
+
 const props = defineProps({
   occupied : { type: Boolean, required: true },
   player: { type: String, required: false, default: '' },
-  cellId: { type: String, required: true }
+  cellId: { type: String, required: true },
+  allowCellPick: { type: Boolean, required: true }
 });
 
 const emit = defineEmits(['cell-picked']);
 
+const store = useGameStateStore();
+const activateUserSymbol = ref<boolean>(false);
+const activateGptSymbol = ref<boolean>(false);
+
 const pickCell = () => {
-  if (!props.occupied && props.player !== "") {
+  if (!props.occupied && props.player !== "" && props.allowCellPick) {
     store.updateGameState(props.player, props.cellId);
     emitPickCellEvent();
   }
-
 };
 
 const emitPickCellEvent = () => {

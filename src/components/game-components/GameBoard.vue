@@ -144,8 +144,8 @@ const changeTurn = () => {
   min-height:486px;
   position: relative;
   display: grid;
+  border-radius: 10px;
   grid-template-columns: repeat(3, 1fr);
-  grid-gap: 1px;
   box-shadow: 0 0 40px rgba(212, 212, 212, 0.5),
               0 0 70px rgba(212, 212, 212, 0.5),
               0 0 100px rgba(212, 212, 212, 0.5),

@@ -65,8 +65,21 @@ const emitPickCellEvent = () => {
   align-items: center;
   justify-content: center;
   transition: all 300ms;
+  overflow: hidden;
   img {
     width: 80px;
+  }
+  &:nth-child(1) {
+    border-top-left-radius: 10px;
+  }
+  &:nth-child(3) {
+    border-top-right-radius: 10px;
+  }
+  &:nth-child(7) {
+    border-bottom-left-radius: 10px;
+  }
+  &:nth-child(9) {
+    border-bottom-right-radius: 10px;
   }
 }
 .inactive {

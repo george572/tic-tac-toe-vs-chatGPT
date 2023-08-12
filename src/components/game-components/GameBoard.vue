@@ -5,7 +5,7 @@ import { useGameStateStore } from "@/stores/gameState";
 import { UseRoundResult } from "@/composables/UseRoundResult";
 import { UseWhoStarts } from "@/composables/UseWhoStarts";
 import GameBoardCell from './GameBoardCell.vue';
-import { setLocalStorage, getLocalStorage } from "@/utils/functions/localStorage";
+import { setLocalStorage, getLocalStorage, removeLocalStorage } from "@/utils/functions/localStorage";
 
 const store = useGameStateStore();
 const { determineWhoStarts } = UseWhoStarts();
@@ -34,7 +34,6 @@ const previousGameRecordExists = ref<boolean>(false);
 
 onMounted(() => {
   getDataFromLocalStorage();
-  console.log(gameScores.value.gpt, gameScores.value.user);
 });
 
 const getDataFromLocalStorage = () => {
@@ -122,20 +121,9 @@ const changeTurn = () => {
 };
 
 const resetGameData = () => {
-  setLocalStorage('user', null);
-  setLocalStorage('gpt', null);
-  gameScores.value = {
-    user: {
-    wins: 0,
-    ties: 0,
-    loses: 0
-  },
-  gpt: {
-    wins: 0,
-    ties: 0,
-    loses: 0
-  }
-};
+  removeLocalStorage('gpt');
+  removeLocalStorage('user');
+  window.location.reload();
 };
 
 watch(gameScores.value, () => {

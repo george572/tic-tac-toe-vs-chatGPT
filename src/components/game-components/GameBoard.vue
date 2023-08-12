@@ -1,18 +1,29 @@
 <script lang="ts" setup>
-import { ref } from "vue";
-import { CellsGrid } from "@/constants/CellsGrid";
+import { ref, onMounted, watch } from "vue";
+import { CellsGrid } from "@/utils/constants/CellsGrid";
 import { useGameStateStore } from "@/stores/gameState";
 import { UseRoundResult } from "@/composables/UseRoundResult";
 import { UseWhoStarts } from "@/composables/UseWhoStarts";
 import GameBoardCell from './GameBoardCell.vue';
+import { setLocalStorage, getLocalStorage } from "@/utils/functions/localStorage";
 
 const store = useGameStateStore();
 const { determineWhoStarts } = UseWhoStarts();
 
 const roundResultText = ref<string>("");
 const gameStartText = ref<string>("");
-const playerScore = ref<number>(0);
-const chatGptScore = ref<number>(0);
+const gameScores = ref<ScoreCounter>({
+  user: {
+    wins: 0,
+    ties: 0,
+    loses: 0
+  },
+  gpt: {
+    wins: 0,
+    ties: 0,
+    loses: 0
+  }
+});
 const turn = ref<number | null >(null);
 const cellsGridClone = ref<Cell[]>(JSON.parse(JSON.stringify(CellsGrid)));
 const currentPlayer = ref<string | undefined>(undefined);
@@ -21,12 +32,39 @@ const roundFinished = ref<boolean>(false);
 const winningCellsArray = ref<string[] | null>(null);
 
 
+onMounted(() => {
+  getDataFromLocalStorage();
+  console.log(gameScores.value.gpt, gameScores.value.user)
+});
+
+const getDataFromLocalStorage = () => {
+  const userData = getLocalStorage('user');
+  const gptData = getLocalStorage('gpt');
+  if (userData && gptData) {
+    gameScores.value.user = userData;
+    gameScores.value.gpt = gptData;
+  }
+};
+
 const handleStartGame = () => {
-  const r = determineWhoStarts();
+  const lastRoundWinner = getLocalStorage('lastRoundWinner');
+  if ( lastRoundWinner ) {
+    if ( lastRoundWinner === 'user') {
+      currentPlayer.value = 'gpt';
+      turn.value = 1;
+      gameStartText.value = 'GPT starts'; 
+    } else {
+      currentPlayer.value = 'user';
+      gameStartText.value = 'USER starts'; 
+      turn.value = 0;
+    }
+  } else {
+    const r = determineWhoStarts();
+    turn.value = r.currentTurn;
+    currentPlayer.value = r.currentActivePlayer;
+    gameStartText.value = currentPlayer.value.toUpperCase() + ' starts'; 
+  }
   startGame.value = true;
-  turn.value = r.currentTurn;
-  currentPlayer.value = r.currentActivePlayer;
-  gameStartText.value = currentPlayer.value.toUpperCase() + ' starts'; 
   roundFinished.value = false;
   roundResultText.value = "";
 };
@@ -37,11 +75,29 @@ const handleCellPickEvent = (cell: Cell) => {
   const pickedCells = turn.value === 1 ? store.gptPickedCells : store.userPickedCells;
   const { roundResult, winningCells } = UseRoundResult(currentPlayer.value, pickedCells, cellsGridClone.value);
   if (roundResult) {
-    winningCellsArray.value = winningCells;
-    roundResultText.value = roundResult;
     store.resetGameState();
     roundFinished.value = true;
-  }
+    winningCellsArray.value = winningCells;
+    roundResultText.value = roundResult;
+    if ( roundResult === 'Tie') {
+      gameScores.value.user.ties += 1;
+      gameScores.value.gpt.ties += 1;
+      return;
+    }
+    if ( roundResult !== 'Tie' ) {
+      if ( currentPlayer.value === 'user' ) {
+        gameScores.value.user.wins += 1;
+        gameScores.value.gpt.loses += 1;
+        return;
+      } 
+      if ( currentPlayer.value === 'gpt' ) {
+        gameScores.value.gpt.wins += 1;
+        gameScores.value.user.loses += 1;
+        return;
+      }
+    }
+    setLocalStorage('lastRoundWinner', currentPlayer.value);
+  } 
   changeTurn();
 };
 
@@ -63,13 +119,20 @@ const changeTurn = () => {
     currentPlayer.value = 'gpt';
   }
 };
+
+watch(gameScores.value, () => {
+  setLocalStorage('user', gameScores.value.user);
+  setLocalStorage('gpt', gameScores.value.gpt);
+});
 </script>
 
 <template>
   <div class="game-board-wrapper">
     <div class="player-info">
       <h2>YOU</h2>
-      <span>Score : {{ playerScore }}</span>
+      <span>Wins : {{ gameScores.user.wins }}</span>
+      <span>Ties : {{ gameScores.user.ties }}</span>
+      <span>Loses : {{ gameScores.user.loses }}</span>
     </div>
     <div
       v-if="!startGame"
@@ -107,7 +170,9 @@ const changeTurn = () => {
     </div>
     <div class="player-info">
       <h2>GPT</h2>
-      <span>Score : {{ chatGptScore }}</span>
+      <span>Wins : {{ gameScores.gpt.wins }}</span>
+      <span>Ties : {{ gameScores.gpt.ties }}</span>
+      <span>Loses : {{ gameScores.gpt.loses }}</span>
     </div>
     <div class="game-text">
       <div v-if="roundFinished">
@@ -140,6 +205,10 @@ const changeTurn = () => {
   h2 {
     font-size: 80px;
     padding-bottom: 20px;
+  }
+  span {
+    margin: 3px 0;
+    text-align: left;
   }
 }
 
@@ -232,5 +301,4 @@ const changeTurn = () => {
     transform: scale(1.06);
   }
 }
-
 </style>

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { ref, onMounted, watch } from "vue";
+import { ref, onMounted, watch, computed } from "vue";
 import { CellsGrid } from "@/utils/constants/CellsGrid";
 import { useGameStateStore } from "@/stores/gameState";
 import { UseRoundResult } from "@/composables/UseRoundResult";
@@ -30,17 +30,18 @@ const currentPlayer = ref<string | undefined>(undefined);
 const startGame = ref<boolean>(false);
 const roundFinished = ref<boolean>(false);
 const winningCellsArray = ref<string[] | null>(null);
-
+const previousGameRecordExists = ref<boolean>(false);
 
 onMounted(() => {
   getDataFromLocalStorage();
-  console.log(gameScores.value.gpt, gameScores.value.user)
+  console.log(gameScores.value.gpt, gameScores.value.user);
 });
 
 const getDataFromLocalStorage = () => {
   const userData = getLocalStorage('user');
   const gptData = getLocalStorage('gpt');
   if (userData && gptData) {
+    previousGameRecordExists.value = true;
     gameScores.value.user = userData;
     gameScores.value.gpt = gptData;
   }
@@ -75,6 +76,7 @@ const handleCellPickEvent = (cell: Cell) => {
   const pickedCells = turn.value === 1 ? store.gptPickedCells : store.userPickedCells;
   const { roundResult, winningCells } = UseRoundResult(currentPlayer.value, pickedCells, cellsGridClone.value);
   if (roundResult) {
+    setLocalStorage('lastRoundWinner', currentPlayer.value);
     store.resetGameState();
     roundFinished.value = true;
     winningCellsArray.value = winningCells;
@@ -96,7 +98,6 @@ const handleCellPickEvent = (cell: Cell) => {
         return;
       }
     }
-    setLocalStorage('lastRoundWinner', currentPlayer.value);
   } 
   changeTurn();
 };
@@ -120,9 +121,27 @@ const changeTurn = () => {
   }
 };
 
+const resetGameData = () => {
+  setLocalStorage('user', null);
+  setLocalStorage('gpt', null);
+  gameScores.value = {
+    user: {
+    wins: 0,
+    ties: 0,
+    loses: 0
+  },
+  gpt: {
+    wins: 0,
+    ties: 0,
+    loses: 0
+  }
+};
+};
+
 watch(gameScores.value, () => {
   setLocalStorage('user', gameScores.value.user);
   setLocalStorage('gpt', gameScores.value.gpt);
+  previousGameRecordExists.value = true;
 });
 </script>
 
@@ -182,6 +201,13 @@ watch(gameScores.value, () => {
         {{ gameStartText }}
       </div>
     </div>
+    <button
+      v-if="previousGameRecordExists"
+      class="reset-data-btn"
+      @click="resetGameData"
+    >
+      RESET GAME DATA
+    </button>
   </div>
 </template>
 
@@ -300,5 +326,12 @@ watch(gameScores.value, () => {
     color: #293341;
     transform: scale(1.06);
   }
+}
+
+.reset-data-btn {
+  @extend .restart-btn;
+  bottom: 20px;
+  right: 20px;
+  font-size: 14px;
 }
 </style>

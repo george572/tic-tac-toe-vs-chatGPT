@@ -135,7 +135,10 @@ watch(gameScores.value, () => {
 
 <template>
   <div class="game-board-wrapper">
-    <div class="player-info">
+    <div
+      class="player-info"
+      :class="{'inactive-player': turn === 1}"
+    >
       <h2>YOU</h2>
       <span>Wins : {{ gameScores.user.wins }}</span>
       <span>Ties : {{ gameScores.user.ties }}</span>
@@ -175,7 +178,10 @@ watch(gameScores.value, () => {
         RESTART
       </button>
     </div>
-    <div class="player-info">
+    <div
+      class="player-info"
+      :class="{'inactive-player': turn === 0}"
+    >
       <h2>GPT</h2>
       <span>Wins : {{ gameScores.gpt.wins }}</span>
       <span>Ties : {{ gameScores.gpt.ties }}</span>
@@ -206,6 +212,9 @@ watch(gameScores.value, () => {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  @media only screen and (max-width: 991px) {
+    flex-direction: column;
+  }
 }
 
 .player-info {
@@ -216,6 +225,8 @@ watch(gameScores.value, () => {
   width: 100%;
   height: 100%;
   max-height: 350px;
+  opacity: 1;
+  transition: all 400ms;
   h2 {
     font-size: 80px;
     padding-bottom: 20px;
@@ -224,9 +235,15 @@ watch(gameScores.value, () => {
     margin: 3px 0;
     text-align: left;
   }
+  @media only screen and (max-width: 991px) {
+    order:2;
+  }
 }
 
 .game-board-grid {
+  @media only screen and (max-width: 991px) {
+    order:1 ;
+  }
   min-width:486px;
   min-height:486px;
   position: relative;
@@ -298,9 +315,9 @@ watch(gameScores.value, () => {
 
 .restart-btn {
   position: absolute;
-  bottom: -80px;
+  bottom: -55px;
   right: 0;
-  font-size: 30px;
+  font-size: 14px;
   padding: 10px 15px;
   background-color: transparent;
   border: 1px solid rgba(255, 255, 255, 0.2);
@@ -312,7 +329,6 @@ watch(gameScores.value, () => {
   &:hover {
     background-color: white;
     color: #293341;
-    transform: scale(1.06);
   }
 }
 
@@ -321,5 +337,9 @@ watch(gameScores.value, () => {
   bottom: 20px;
   right: 20px;
   font-size: 14px;
+}
+
+.inactive-player {
+  opacity: 0.2;
 }
 </style>

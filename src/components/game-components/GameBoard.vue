@@ -173,6 +173,14 @@ watch(gameScores.value, () => {
       class="game-board-grid"
       :class="{'gpt-turn' : turn === 1, 'player-turn' : turn === 0}"
     >
+      <div class="game-text">
+        <div v-if="roundFinished">
+          {{ roundResultText }}
+        </div>
+        <div v-if="startGame">
+          {{ gameStartText }}
+        </div>
+      </div>
       <GameBoardCell
         v-for="cell in cellsGridClone"
         :key="cell.id"
@@ -200,14 +208,6 @@ watch(gameScores.value, () => {
       <span>Ties : {{ gameScores.gpt.ties }}</span>
       <span>Loses : {{ gameScores.gpt.loses }}</span>
     </div>
-    <div class="game-text">
-      <div v-if="roundFinished">
-        {{ roundResultText }}
-      </div>
-      <div v-if="startGame">
-        {{ gameStartText }}
-      </div>
-    </div>
     <button
       v-if="previousGameRecordExists"
       class="reset-data-btn"
@@ -226,6 +226,7 @@ watch(gameScores.value, () => {
 
 <style scoped lang="scss">
 .game-board-wrapper {
+  max-width: 1400px;
   height: 100vh;
   margin: 0 auto;
   display: flex;
@@ -336,7 +337,7 @@ watch(gameScores.value, () => {
   width: 100%;
   height: 30px;
   font-size: 30px;
-  top: 80px;
+  top: -80px;
   text-align: center;
 }
 

@@ -70,16 +70,16 @@ const emitPickCellEvent = () => {
   img {
     width: 80px;
   }
-  &:nth-child(1) {
+  &:nth-child(2) {
     border-top-left-radius: 10px;
   }
-  &:nth-child(3) {
+  &:nth-child(4) {
     border-top-right-radius: 10px;
   }
-  &:nth-child(7) {
+  &:nth-child(8) {
     border-bottom-left-radius: 10px;
   }
-  &:nth-child(9) {
+  &:nth-child(10) {
     border-bottom-right-radius: 10px;
   }
   @media only screen and (max-width: 760px) {

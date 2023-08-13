@@ -31,12 +31,22 @@ const startGame = ref<boolean>(false);
 const roundFinished = ref<boolean>(false);
 const winningCellsArray = ref<string[] | null>(null);
 const previousGameRecordExists = ref<boolean>(false);
+const allowedScreen = ref<boolean>(true);
 
 onMounted(() => {
+  window.addEventListener('resize', onResize);
   getDataFromLocalStorage();
 });
 
-const getDataFromLocalStorage = () => {
+const onResize = () => {
+  if ( window.innerWidth < 800) {
+    allowedScreen.value = false;
+  } else {
+    allowedScreen.value = true;
+  }
+};
+
+const getDataFromLocalStorage = () : void => {
   const userData = getLocalStorage('user');
   const gptData = getLocalStorage('gpt');
   if (userData && gptData) {
@@ -46,7 +56,7 @@ const getDataFromLocalStorage = () => {
   }
 };
 
-const handleStartGame = () => {
+const handleStartGame = () : void  => {
   const lastRoundWinner = getLocalStorage('lastRoundWinner');
   if ( lastRoundWinner ) {
     if ( lastRoundWinner === 'user') {
@@ -69,7 +79,7 @@ const handleStartGame = () => {
   roundResultText.value = "";
 };
 
-const handleCellPickEvent = (cell: Cell) => {
+const handleCellPickEvent = (cell: Cell) : void => {
   gameStartText.value = "";
   cell.occupied = true;
   const pickedCells = turn.value === 1 ? store.gptPickedCells : store.userPickedCells;
@@ -101,7 +111,7 @@ const handleCellPickEvent = (cell: Cell) => {
   changeTurn();
 };
 
-const restartGame = () => {
+const playAgain = () : void => {
   cellsGridClone.value = [];
   winningCellsArray.value = [];
   setTimeout(() => {
@@ -110,7 +120,7 @@ const restartGame = () => {
   handleStartGame();
 };
 
-const changeTurn = () => {
+const changeTurn = () : void => {
   if ( turn.value === 1) {
     turn.value = 0;
     currentPlayer.value = 'user';
@@ -120,7 +130,7 @@ const changeTurn = () => {
   }
 };
 
-const resetGameData = () => {
+const resetGameData = () : void => {
   removeLocalStorage('gpt');
   removeLocalStorage('user');
   window.location.reload();
@@ -134,7 +144,10 @@ watch(gameScores.value, () => {
 </script>
 
 <template>
-  <div class="game-board-wrapper">
+  <div
+    v-if="allowedScreen"
+    class="game-board-wrapper"
+  >
     <div
       class="player-info"
       :class="{'inactive-player': turn === 1}"
@@ -172,14 +185,14 @@ watch(gameScores.value, () => {
       />
       <button
         v-if="roundFinished"
-        class="restart-btn"
-        @click="restartGame"
+        class="play-again-btn"
+        @click="playAgain"
       >
-        RESTART
+        PLAY AGAIN
       </button>
     </div>
     <div
-      class="player-info"
+      class="gpt-info"
       :class="{'inactive-player': turn === 0}"
     >
       <h2>GPT</h2>
@@ -203,6 +216,12 @@ watch(gameScores.value, () => {
       RESET GAME DATA
     </button>
   </div>
+  <div
+    v-else
+    class="not-allowed"
+  >
+    <h2>Mobile version is not supported for the moment</h2>
+  </div>
 </template>
 
 <style scoped lang="scss">
@@ -213,7 +232,6 @@ watch(gameScores.value, () => {
   align-items: center;
   justify-content: space-between;
   @media only screen and (max-width: 991px) {
-    flex-direction: column;
   }
 }
 
@@ -230,19 +248,27 @@ watch(gameScores.value, () => {
   h2 {
     font-size: 80px;
     padding-bottom: 20px;
+    @media only screen and (max-width: 991px) {
+      font-size: 40px;
+    }
   }
   span {
     margin: 3px 0;
     text-align: left;
   }
   @media only screen and (max-width: 991px) {
-    order:2;
+    justify-content: center;
+  }
+}
+
+.gpt-info {
+  @extend .player-info;
+  @media only screen and (max-width: 991px) {
   }
 }
 
 .game-board-grid {
   @media only screen and (max-width: 991px) {
-    order:1 ;
   }
   min-width:486px;
   min-height:486px;
@@ -257,6 +283,33 @@ watch(gameScores.value, () => {
   transition: all 200ms;
 
 }
+.start-game-div {
+  min-width:486px;
+  min-height:486px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  button {
+    font-size: 62px;
+    padding: 10px 15px;
+    background-color: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    outline: none;
+    color: white;
+    border-radius: 10px;
+    transition: all 200ms;
+    cursor: pointer;
+    &:hover {
+      background-color: white;
+      color: #293341;
+      transform: scale(1.06);
+    }
+  }
+}
+
+
 
 .gpt-turn {
   box-shadow: 40px 0 40px rgba(212, 212, 212, 0.5),
@@ -287,33 +340,7 @@ watch(gameScores.value, () => {
   text-align: center;
 }
 
-.start-game-div {
-  min-width:486px;
-  min-height:486px;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 10px;
-  button {
-    font-size: 62px;
-    padding: 10px 15px;
-    background-color: transparent;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    outline: none;
-    color: white;
-    border-radius: 10px;
-    transition: all 200ms;
-    cursor: pointer;
-    &:hover {
-      background-color: white;
-      color: #293341;
-      transform: scale(1.06);
-    }
-  }
-}
-
-.restart-btn {
+.play-again-btn {
   position: absolute;
   bottom: -55px;
   right: 0;
@@ -333,7 +360,7 @@ watch(gameScores.value, () => {
 }
 
 .reset-data-btn {
-  @extend .restart-btn;
+  @extend .play-again-btn;
   bottom: 20px;
   right: 20px;
   font-size: 14px;
@@ -341,5 +368,17 @@ watch(gameScores.value, () => {
 
 .inactive-player {
   opacity: 0.2;
+}
+
+.not-allowed {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  h2 {
+    padding: 0 20px;
+    font-size: 20px;
+    text-align: center;
+  }
 }
 </style>

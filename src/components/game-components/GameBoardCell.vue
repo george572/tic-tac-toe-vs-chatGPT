@@ -82,6 +82,10 @@ const emitPickCellEvent = () => {
   &:nth-child(9) {
     border-bottom-right-radius: 10px;
   }
+  @media only screen and (max-width: 760px) {
+    width: 100%;
+    height: auto;
+  }
 }
 .inactive {
   &:hover {

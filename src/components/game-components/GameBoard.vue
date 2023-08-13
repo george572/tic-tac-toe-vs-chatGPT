@@ -1,18 +1,28 @@
 <script lang="ts" setup>
-import { ref, onMounted, watch, computed } from "vue";
+import { ref, onMounted, watch } from "vue";
 import { CellsGrid } from "@/utils/constants/CellsGrid";
 import { useGameStateStore } from "@/stores/gameState";
 import { UseRoundResult } from "@/composables/UseRoundResult";
 import { UseWhoStarts } from "@/composables/UseWhoStarts";
 import GameBoardCell from './GameBoardCell.vue';
 import { setLocalStorage, getLocalStorage, removeLocalStorage } from "@/utils/functions/localStorage";
+import { useOpenaiStore } from "@/stores/openaiStore";
 
 const store = useGameStateStore();
+const gptStore = useOpenaiStore();
 const { determineWhoStarts } = UseWhoStarts();
 
 const roundResultText = ref<string>("");
 const gameStartText = ref<string>("");
-const gameScores = ref<ScoreCounter>({
+const turn = ref<number | null >(null);
+const cellsGridClone = ref<Cell[]>(JSON.parse(JSON.stringify(CellsGrid)));
+const currentPlayer = ref<string | undefined>(undefined);
+const startGame = ref<boolean>(false);
+const roundFinished = ref<boolean>(false);
+const winningCellsArray = ref<string[] | null>(null);
+const previousGameRecordExists = ref<boolean>(false);
+const allowedScreen = ref<boolean>(true);
+  const gameScores = ref<ScoreCounter>({
   user: {
     wins: 0,
     ties: 0,
@@ -24,16 +34,9 @@ const gameScores = ref<ScoreCounter>({
     loses: 0
   }
 });
-const turn = ref<number | null >(null);
-const cellsGridClone = ref<Cell[]>(JSON.parse(JSON.stringify(CellsGrid)));
-const currentPlayer = ref<string | undefined>(undefined);
-const startGame = ref<boolean>(false);
-const roundFinished = ref<boolean>(false);
-const winningCellsArray = ref<string[] | null>(null);
-const previousGameRecordExists = ref<boolean>(false);
-const allowedScreen = ref<boolean>(true);
 
 onMounted(() => {
+  gptStore.callGptTurn();
   window.addEventListener('resize', onResize);
   getDataFromLocalStorage();
 });

@@ -36,7 +36,6 @@ const allowedScreen = ref<boolean>(true);
 });
 
 onMounted(() => {
-  gptStore.callGptTurn();
   window.addEventListener('resize', onResize);
   getDataFromLocalStorage();
 });
@@ -66,6 +65,7 @@ const handleStartGame = () : void  => {
       currentPlayer.value = 'gpt';
       turn.value = 1;
       gameStartText.value = 'GPT starts'; 
+      gptStore.callGptTurn(cellsGridClone.value);
     } else {
       currentPlayer.value = 'user';
       gameStartText.value = 'USER starts'; 
@@ -76,6 +76,9 @@ const handleStartGame = () : void  => {
     turn.value = r.currentTurn;
     currentPlayer.value = r.currentActivePlayer;
     gameStartText.value = currentPlayer.value.toUpperCase() + ' starts'; 
+    if (currentPlayer.value === 'gpt' ) {
+      gptStore.callGptTurn(cellsGridClone.value);
+    }
   }
   startGame.value = true;
   roundFinished.value = false;
@@ -85,6 +88,7 @@ const handleStartGame = () : void  => {
 const handleCellPickEvent = (cell: Cell) : void => {
   gameStartText.value = "";
   cell.occupied = true;
+  cell.value = currentPlayer.value === 'user' ? 'o' : 'x';
   const pickedCells = turn.value === 1 ? store.gptPickedCells : store.userPickedCells;
   const { roundResult, winningCells } = UseRoundResult(currentPlayer.value, pickedCells, cellsGridClone.value);
   if (roundResult) {
@@ -130,6 +134,7 @@ const changeTurn = () : void => {
   } else {
     turn.value = 1;
     currentPlayer.value = 'gpt';
+    gptStore.callGptTurn(cellsGridClone.value);
   }
 };
 

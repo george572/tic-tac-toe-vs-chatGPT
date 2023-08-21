@@ -4,9 +4,9 @@ export const openAiEndpointSettings = {
   max_tokens: 15000,
   n: 1,
   stop: null,
-  temperature: 1,
+  temperature: 0.4,
   presence_penalty: 2,
-  messages: {}
+  messages: [{}]
 };
 export const openAiEndpointHeaders = {
   headers: {

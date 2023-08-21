@@ -1,18 +1,28 @@
 <script lang="ts" setup>
-import { ref, onMounted, watch, computed } from "vue";
+import { ref, onMounted, watch } from "vue";
 import { CellsGrid } from "@/utils/constants/CellsGrid";
 import { useGameStateStore } from "@/stores/gameState";
 import { UseRoundResult } from "@/composables/UseRoundResult";
 import { UseWhoStarts } from "@/composables/UseWhoStarts";
 import GameBoardCell from './GameBoardCell.vue';
 import { setLocalStorage, getLocalStorage, removeLocalStorage } from "@/utils/functions/localStorage";
+import { useOpenaiStore } from "@/stores/openaiStore";
 
 const store = useGameStateStore();
+const gptStore = useOpenaiStore();
 const { determineWhoStarts } = UseWhoStarts();
 
 const roundResultText = ref<string>("");
 const gameStartText = ref<string>("");
-const gameScores = ref<ScoreCounter>({
+const turn = ref<number | null >(null);
+const cellsGridClone = ref<Cell[]>(JSON.parse(JSON.stringify(CellsGrid)));
+const currentPlayer = ref<string | undefined>(undefined);
+const startGame = ref<boolean>(false);
+const roundFinished = ref<boolean>(false);
+const winningCellsArray = ref<string[] | null>(null);
+const previousGameRecordExists = ref<boolean>(false);
+const allowedScreen = ref<boolean>(true);
+  const gameScores = ref<ScoreCounter>({
   user: {
     wins: 0,
     ties: 0,
@@ -24,14 +34,6 @@ const gameScores = ref<ScoreCounter>({
     loses: 0
   }
 });
-const turn = ref<number | null >(null);
-const cellsGridClone = ref<Cell[]>(JSON.parse(JSON.stringify(CellsGrid)));
-const currentPlayer = ref<string | undefined>(undefined);
-const startGame = ref<boolean>(false);
-const roundFinished = ref<boolean>(false);
-const winningCellsArray = ref<string[] | null>(null);
-const previousGameRecordExists = ref<boolean>(false);
-const allowedScreen = ref<boolean>(true);
 
 onMounted(() => {
   window.addEventListener('resize', onResize);
@@ -63,6 +65,7 @@ const handleStartGame = () : void  => {
       currentPlayer.value = 'gpt';
       turn.value = 1;
       gameStartText.value = 'GPT starts'; 
+      gptStore.callGptTurn(cellsGridClone.value);
     } else {
       currentPlayer.value = 'user';
       gameStartText.value = 'USER starts'; 
@@ -73,6 +76,9 @@ const handleStartGame = () : void  => {
     turn.value = r.currentTurn;
     currentPlayer.value = r.currentActivePlayer;
     gameStartText.value = currentPlayer.value.toUpperCase() + ' starts'; 
+    if (currentPlayer.value === 'gpt' ) {
+      gptStore.callGptTurn(cellsGridClone.value);
+    }
   }
   startGame.value = true;
   roundFinished.value = false;
@@ -82,6 +88,7 @@ const handleStartGame = () : void  => {
 const handleCellPickEvent = (cell: Cell) : void => {
   gameStartText.value = "";
   cell.occupied = true;
+  cell.value = currentPlayer.value === 'user' ? 'o' : 'x';
   const pickedCells = turn.value === 1 ? store.gptPickedCells : store.userPickedCells;
   const { roundResult, winningCells } = UseRoundResult(currentPlayer.value, pickedCells, cellsGridClone.value);
   if (roundResult) {
@@ -127,6 +134,7 @@ const changeTurn = () : void => {
   } else {
     turn.value = 1;
     currentPlayer.value = 'gpt';
+    gptStore.callGptTurn(cellsGridClone.value);
   }
 };
 
